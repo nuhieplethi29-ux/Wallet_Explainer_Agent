@@ -1,59 +1,59 @@
 # Wallet Explainer Agent
 
-Local CLI AI agent giup giai thich hoat dong gan day cua mot Ethereum wallet bang tieng Viet.
+A local CLI AI agent that explains recent Ethereum wallet activity in simple Vietnamese.
 
-Agent nhan wallet address, lay cac giao dich gan nhat tu Etherscan API V2, chuan hoa du lieu giao dich va ERC-20 transfer, sau do gui sang OpenAI API de tao phan giai thich Markdown de hieu.
+The agent accepts an Ethereum wallet address, fetches recent transactions from the Etherscan API V2, normalizes normal transactions and ERC-20 transfers, then sends the compact activity data to the OpenAI API to generate an easy-to-read Markdown explanation.
 
-## Tinh nang
+## Features
 
-- Lay 5-10 giao dich Ethereum gan nhat tu Etherscan.
-- Lay them ERC-20 token transfers lien quan den wallet.
-- Nhom token transfers theo transaction hash.
-- Phan loai hanh vi co ban:
+- Fetches 5-10 recent Ethereum transactions from Etherscan.
+- Fetches related ERC-20 token transfers.
+- Groups token transfers by transaction hash.
+- Classifies basic wallet behavior:
   - ETH transfer
   - token transfer
   - possible swap
   - possible DeFi activity
   - failed transaction
-- Giai thich ket qua bang tieng Viet voi ngon ngu than trong.
-- Khong dung database, frontend, Docker, FastAPI, Streamlit, web3.py hoac pandas.
+- Generates a cautious Vietnamese explanation.
+- Does not use a database, frontend, Docker, FastAPI, Streamlit, web3.py, or pandas.
 
-## Yeu cau
+## Requirements
 
 - Python 3.10+
 - uv
 - Etherscan API key
 - OpenAI API key
 
-## Cai dat
+## Installation
 
-Trong thu muc project:
+From the project directory:
 
 ```bash
 uv sync
 ```
 
-Neu chua co `uv`, cai theo huong dan chinh thuc cua Astral:
+If `uv` is not installed yet, install it with:
 
 ```bash
 pip install uv
 ```
 
-## Cau hinh moi truong
+## Environment Configuration
 
-Copy file mau:
+Copy the example environment file:
 
 ```bash
 cp .env.example .env
 ```
 
-Tren Windows PowerShell:
+On Windows PowerShell:
 
 ```powershell
 Copy-Item .env.example .env
 ```
 
-Cap nhat `.env`:
+Update `.env`:
 
 ```env
 ETHERSCAN_API_KEY=your_etherscan_api_key_here
@@ -61,39 +61,39 @@ OPENAI_API_KEY=your_openai_api_key_here
 OPENAI_MODEL=gpt-4.1-mini
 ```
 
-Trong do:
+Environment variables:
 
-- `ETHERSCAN_API_KEY`: API key tu Etherscan.
-- `OPENAI_API_KEY`: API key tu OpenAI.
-- `OPENAI_MODEL`: model OpenAI dung de giai thich, mac dinh la `gpt-4.1-mini`.
+- `ETHERSCAN_API_KEY`: your Etherscan API key.
+- `OPENAI_API_KEY`: your OpenAI API key.
+- `OPENAI_MODEL`: the OpenAI model used for explanation. Defaults to `gpt-4.1-mini`.
 
-Khong commit file `.env` len Git.
+Do not commit `.env` to Git.
 
-## Cach chay
+## Usage
 
 ```bash
 uv run python main.py --wallet 0xabc... --limit 10
 ```
 
-Vi du:
+Example:
 
 ```bash
 uv run python main.py --wallet 0x0000000000000000000000000000000000000000 --limit 5
 ```
 
-Dung chain ID khac neu can:
+Use a different chain ID if needed:
 
 ```bash
 uv run python main.py --wallet 0xabc... --limit 10 --chainid 1
 ```
 
-Tham so CLI:
+CLI arguments:
 
-- `--wallet`: bat buoc, Ethereum wallet address dang `0x` + 40 ky tu hex.
-- `--limit`: tuy chon, so giao dich gan nhat can lay, mac dinh `10`.
-- `--chainid`: tuy chon, Etherscan V2 chain ID, mac dinh `1` cho Ethereum mainnet.
+- `--wallet`: required Ethereum wallet address in `0x` + 40 hex characters format.
+- `--limit`: optional number of recent transactions to fetch. Defaults to `10`.
+- `--chainid`: optional Etherscan V2 chain ID. Defaults to `1` for Ethereum mainnet.
 
-Xem help:
+Show help:
 
 ```bash
 uv run python main.py --help
@@ -101,7 +101,7 @@ uv run python main.py --help
 
 ## Output
 
-Agent in Markdown tieng Viet ra terminal, gom cac phan:
+The agent prints Vietnamese Markdown to the terminal with these sections:
 
 ```md
 ## Tom tat vi
@@ -113,9 +113,9 @@ Agent in Markdown tieng Viet ra terminal, gom cac phan:
 ## Luu y
 ```
 
-Noi dung chi dua tren du lieu giao dich duoc cung cap. Agent khong suy doan danh tinh chu vi va khong dua ra loi khuyen dau tu.
+The explanation only uses the provided transaction data. The agent does not guess the wallet owner's identity and does not provide financial advice.
 
-## Cau truc source
+## Source Structure
 
 ```txt
 wallet-explainer-agent/
@@ -142,54 +142,54 @@ wallet-explainer-agent/
         `-- formatters.py
 ```
 
-## Luong xu ly
+## Processing Flow
 
-1. `main.py` doc tham so CLI.
-2. `WalletExplainerApp` validate wallet address.
-3. `EtherscanClient` goi Etherscan API V2:
-   - `account/txlist` de lay normal transactions.
-   - `account/tokentx` de lay ERC-20 transfers.
-4. `WalletActivityService` chuan hoa raw data thanh `WalletActivity`.
-5. `OpenAIExplainer` gui du lieu compact JSON sang OpenAI.
-6. Ket qua Markdown tieng Viet duoc in ra terminal.
+1. `main.py` reads CLI arguments.
+2. `WalletExplainerApp` validates the wallet address.
+3. `EtherscanClient` calls the Etherscan API V2:
+   - `account/txlist` for normal transactions.
+   - `account/tokentx` for ERC-20 transfers.
+4. `WalletActivityService` normalizes raw data into `WalletActivity` objects.
+5. `OpenAIExplainer` sends compact JSON activity data to OpenAI.
+6. The Vietnamese Markdown explanation is printed to the terminal.
 
-## Cach phan loai hoat dong
+## Activity Classification
 
-- `eth_transfer`: giao dich co ETH value va wallet la sender hoac receiver.
-- `token_transfer`: giao dich co ERC-20 transfer vao hoac ra.
-- `possible_swap`: cung transaction co token out va token in, ETH out va token in, hoac token out va ETH in.
-- `possible_defi_activity`: `functionName` co cac tu khoa nhu `supply`, `deposit`, `withdraw`, `borrow`, `repay`, `stake`, `unstake`, `claim`.
-- `failed_transaction`: Etherscan bao `isError == "1"` hoac `txreceipt_status == "0"`.
+- `eth_transfer`: a transaction has an ETH value and the wallet is the sender or receiver.
+- `token_transfer`: a transaction has incoming or outgoing ERC-20 transfers.
+- `possible_swap`: a transaction contains token out and token in, ETH out and token in, or token out and ETH in.
+- `possible_defi_activity`: `functionName` contains keywords such as `supply`, `deposit`, `withdraw`, `borrow`, `repay`, `stake`, `unstake`, or `claim`.
+- `failed_transaction`: Etherscan reports `isError == "1"` or `txreceipt_status == "0"`.
 
-Day chi la heuristic don gian, nen output dung ngon ngu than trong nhu "co ve", "co kha nang", "dua tren du lieu gan day".
+These are simple heuristics, so the final explanation should use cautious wording such as "co ve", "co kha nang", and "dua tren du lieu gan day".
 
-## Xu ly loi
+## Error Handling
 
-Agent bao loi ro rang cho cac truong hop:
+The agent reports clear errors for:
 
-- Thieu `ETHERSCAN_API_KEY`.
-- Thieu `OPENAI_API_KEY`.
-- Wallet address khong hop le.
-- Khong co transaction gan day.
-- Etherscan API loi hoac timeout.
-- OpenAI API loi hoac tra ve output rong.
+- Missing `ETHERSCAN_API_KEY`.
+- Missing `OPENAI_API_KEY`.
+- Invalid wallet address.
+- No recent transactions.
+- Etherscan API errors or timeouts.
+- OpenAI API errors or empty output.
 
-## Ghi chu bao mat
+## Security Notes
 
-- Khong hardcode API key trong source.
-- Dat secret trong `.env`.
-- Khong dung ket qua nay lam loi khuyen dau tu.
-- Chi phan tich tren mot so giao dich gan day, nen co the thieu boi canh.
+- Do not hardcode API keys in source code.
+- Store secrets in `.env`.
+- Do not treat the output as financial advice.
+- The analysis only covers a small number of recent transactions, so it may miss broader context.
 
-## Kiem tra nhanh
+## Quick Checks
 
-Compile source:
+Compile the source:
 
 ```bash
 python -m compileall main.py src
 ```
 
-Kiem tra CLI help:
+Check CLI help:
 
 ```bash
 python main.py --help
